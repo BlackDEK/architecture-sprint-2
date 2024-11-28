@@ -21,8 +21,7 @@
         statix
         deadnix
 
-        # nodejs
-        yamlfmt
+        yaml-language-server
       ];
     in
     {
