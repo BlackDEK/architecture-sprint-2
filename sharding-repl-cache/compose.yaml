@@ -1,0 +1,153 @@
+name: sharding-repl-cache
+services:
+  # API
+  pymongoAPI:
+    container_name: pymongoAPI
+    build:
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - mongosRouter
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.2
+    ports:
+      - "8080:8080"
+    environment:
+      MONGODB_URL: "mongodb://mongosRouter:27020"
+      REDIS_URL: "redis://redis:6379"
+      MONGODB_DATABASE_NAME: "somedb"
+
+  # Cервер конфигурации
+  configSrv:
+    image: mongo:latest
+    container_name: configSrv
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.3
+    command:
+      [
+        "--configsvr",
+        "--replSet",
+        "config_server",
+        "--bind_ip_all",
+        "--port",
+        "27017",
+      ]
+
+  # Роутер
+  mongosRouter:
+    image: mongo:latest
+    container_name: mongosRouter
+    restart: always
+    ports:
+      - "27020:27020"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.4
+    command:
+      [
+        "mongos",
+        "--configdb",
+        "config_server/configSrv:27017",
+        "--bind_ip_all",
+        "--port",
+        "27020",
+      ]
+
+  # 1-й шард
+  shard1:
+    image: mongo:latest
+    container_name: shard1
+    restart: always
+    ports:
+      - "27018:27018"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.5
+    command:
+      ["--shardsvr", "--replSet", "shard1", "--bind_ip_all", "--port", "27018"]
+
+  # 1-й шард 1-я реплика
+  shard1Replica1:
+    image: mongo:latest
+    container_name: shard1Replica1
+    restart: always
+    ports:
+      - "27118:27118"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.7
+    command: ["--shardsvr", "--replSet", "shard1", "--port", "27118"]
+
+  # 1-й шард 2-я реплика
+  shard1Replica2:
+    image: mongo:latest
+    container_name: shard1Replica2
+    restart: always
+    ports:
+      - "27218:27218"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.9
+    command: ["--shardsvr", "--replSet", "shard1", "--port", "27218"]
+
+  # 2-й шард
+  shard2:
+    image: mongo:latest
+    container_name: shard2
+    restart: always
+    ports:
+      - "27019:27019"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.6
+    command:
+      ["--shardsvr", "--replSet", "shard2", "--bind_ip_all", "--port", "27019"]
+
+  # 2-й шард 1-я реплика
+  shard2Replica1:
+    image: mongo:latest
+    container_name: shard2Replica1
+    restart: always
+    ports:
+      - "27119:27119"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.8
+    command: ["--shardsvr", "--replSet", "shard2", "--port", "27119"]
+
+  # 2-й шард 2-я реплика
+  shard2Replica2:
+    image: mongo:latest
+    container_name: shard2Replica2
+    restart: always
+    ports:
+      - "27219:27219"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.10
+    command: ["--shardsvr", "--replSet", "shard2", "--port", "27219"]
+
+  # Редис
+  redis:
+    image: "redis:latest"
+    container_name: redis
+    ports:
+      - "6379"
+    command: [ "redis-server" ]
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.11
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 173.17.0.0/16
