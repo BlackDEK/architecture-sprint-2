@@ -1,4 +1,23 @@
 services:
+  # API
+  pymongoAPI:
+    container_name: pymongoAPI
+    build: 
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - mongosRouter
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.2
+    ports:
+      - "8080:8080"
+    environment:
+      MONGODB_URL: "mongodb://mongosRouter:27020"
+      MONGODB_DATABASE_NAME: "somedb"
+
+
   # Cервер конфигурации
   configSrv:
     image: mongo:latest
@@ -8,7 +27,7 @@ services:
       - "27017:27017"
     networks:
       app-network:
-        ipv4_address: 173.17.0.10
+        ipv4_address: 173.17.0.3
     command:
       [
         "--configsvr",
@@ -19,6 +38,26 @@ services:
         "27017"
       ] 
 
+  # Роутер
+  mongosRouter:
+    image: mongo:latest
+    container_name: mongosRouter
+    restart: always
+    ports:
+      - "27020:27020"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.4       
+    command:
+      [
+        "mongos",
+        "--configdb", 
+        "config_server/configSrv:27017",
+        "--bind_ip_all",
+        "--port",
+        "27020"
+      ]
+   
   # 1-й шард 
   shard1:
     image: mongo:latest
@@ -28,7 +67,7 @@ services:
       - "27018:27018"
     networks:
       app-network:
-        ipv4_address: 173.17.0.9 
+        ipv4_address: 173.17.0.5 
     command:
       [
         "--shardsvr",
@@ -48,7 +87,7 @@ services:
       - "27019:27019"
     networks:
       app-network:
-        ipv4_address: 173.17.0.8
+        ipv4_address: 173.17.0.6
     command:
       [
         "--shardsvr",
@@ -58,44 +97,7 @@ services:
         "--port",
         "27019"
       ]
-
-  # Роутер
-  mongosRouter:
-    image: mongo:latest
-    container_name: mongosRouter
-    restart: always
-    ports:
-      - "27020:27020"
-    networks:
-      app-network:
-        ipv4_address: 173.17.0.7        
-    command:
-      [
-        "mongos",
-        "--configdb", 
-        "config_server/configSrv:27017",
-        "--bind_ip_all",
-        "--port",
-        "27020"
-      ]
-    
-  # API
-  pymongoAPI:
-    container_name: pymongoAPI
-    build: 
-      context: api_app
-      dockerfile: Dockerfile
-    image: kazhem/pymongo_api:1.0.0
-    depends_on:
-      - mongosRouter
-    ports:
-      - "8085:8085"
-    networks:
-      app-network: 
-    environment:
-      MONGODB_URL: "mongodb://mongosRouter:27020"
-      MONGODB_DATABASE_NAME: "somedb"
-
+ 
 networks:
   app-network:
     driver: bridge
