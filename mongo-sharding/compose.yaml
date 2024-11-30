@@ -1,8 +1,9 @@
-services:
+name: mongo-sharding
+services:  
   # API
   pymongoAPI:
     container_name: pymongoAPI
-    build: 
+    build:
       context: api_app
       dockerfile: Dockerfile
     image: kazhem/pymongo_api:1.0.0
@@ -16,7 +17,6 @@ services:
     environment:
       MONGODB_URL: "mongodb://mongosRouter:27020"
       MONGODB_DATABASE_NAME: "somedb"
-
 
   # Cервер конфигурации
   configSrv:
@@ -35,8 +35,8 @@ services:
         "config_server",
         "--bind_ip_all",
         "--port",
-        "27017"
-      ] 
+        "27017",
+      ]
 
   # Роутер
   mongosRouter:
@@ -47,18 +47,18 @@ services:
       - "27020:27020"
     networks:
       app-network:
-        ipv4_address: 173.17.0.4       
+        ipv4_address: 173.17.0.4
     command:
       [
         "mongos",
-        "--configdb", 
+        "--configdb",
         "config_server/configSrv:27017",
         "--bind_ip_all",
         "--port",
-        "27020"
+        "27020",
       ]
-   
-  # 1-й шард 
+
+  # 1-й шард
   shard1:
     image: mongo:latest
     container_name: shard1
@@ -67,18 +67,11 @@ services:
       - "27018:27018"
     networks:
       app-network:
-        ipv4_address: 173.17.0.5 
+        ipv4_address: 173.17.0.5
     command:
-      [
-        "--shardsvr",
-        "--replSet",
-        "shard1",
-        "--bind_ip_all",
-        "--port",
-        "27018"
-      ]
+      ["--shardsvr", "--replSet", "shard1", "--bind_ip_all", "--port", "27018"]
 
-  # 2-й шард 
+  # 2-й шард
   shard2:
     image: mongo:latest
     container_name: shard2
@@ -89,15 +82,8 @@ services:
       app-network:
         ipv4_address: 173.17.0.6
     command:
-      [
-        "--shardsvr",
-        "--replSet",
-        "shard2",
-        "--bind_ip_all",
-        "--port",
-        "27019"
-      ]
- 
+      ["--shardsvr", "--replSet", "shard2", "--bind_ip_all", "--port", "27019"]
+
 networks:
   app-network:
     driver: bridge
