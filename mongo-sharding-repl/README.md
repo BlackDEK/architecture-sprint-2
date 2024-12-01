@@ -22,7 +22,3 @@ docker exec -it mongosRouter bash -c "echo '$(cat "./scripts/init_router.js")' |
 ```
 
 ## Алгоритм проверки
-
-- Запустить файл `./start.sh`.
-- Сделать файл `check_docs.sh` исполняемым.
-- Запустить файл `./check_docs.sh`.

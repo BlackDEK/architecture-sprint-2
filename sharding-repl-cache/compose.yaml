@@ -96,6 +96,18 @@ services:
         ipv4_address: 173.17.0.9
     command: ["--shardsvr", "--replSet", "shard1", "--port", "27218"]
 
+  # 1-й шард 3-я реплика
+  shard1Replica3:
+    image: mongo:latest
+    container_name: shard1Replica3
+    restart: always
+    ports:
+      - "27318:27318"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.11
+    command: ["--shardsvr", "--replSet", "shard1", "--port", "27318"]
+
   # 2-й шард
   shard2:
     image: mongo:latest
@@ -133,6 +145,18 @@ services:
         ipv4_address: 173.17.0.10
     command: ["--shardsvr", "--replSet", "shard2", "--port", "27219"]
 
+  # 2-й шард 3-я реплика
+  shard2Replica3:
+    image: mongo:latest
+    container_name: shard2Replica3
+    restart: always
+    ports:
+      - "27319:27319"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.12
+    command: ["--shardsvr", "--replSet", "shard2", "--port", "27319"]
+
   # Редис
   redis:
     image: "redis:latest"
@@ -142,7 +166,7 @@ services:
     command: [ "redis-server" ]
     networks:
       app-network:
-        ipv4_address: 173.17.0.11
+        ipv4_address: 173.17.0.13
 
 networks:
   app-network:
