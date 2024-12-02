@@ -22,3 +22,5 @@ docker exec -it mongosRouter bash -c "echo '$(cat "./scripts/init_router.js")' |
 ```
 
 ## Алгоритм проверки
+
+- В приложении pymongo_api проверить кол-во реплик.
